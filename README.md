@@ -1,50 +1,85 @@
-# node-chartjs
-
-Chart.js on the server in Node.js 8.x.x or later
-
-Based on previous work by https://github.com/vmpowerio/chartjs-node
-
-*With a few improvements we think:*
-
-- Uses the newer ~9.x.x~ 11.x.x version of JSDOM
-- Does not pollute node's global namespace
-
-> Note that we strongly advise against trying to "execute scripts" by mashing together the jsdom and Node global environments (e.g. by doing global.window = dom.window), and then executing scripts or test code inside the Node global environment. Instead, you should treat jsdom like you would a browser, and run all scripts and tests that need access to a DOM inside the jsdom environment, using window.eval or runScripts: "dangerously". This might require, for example, creating a browserify bundle to execute as a <script> element—just like you would in a browser.
-
-## 💖 Made possibly by:
-
-- [node-canvas](https://github.com/Automattic/node-canvas) - a Cairo backed Canvas implementation for NodeJS. See [installation wiki](https://github.com/Automattic/node-canvas/wiki/Installation---Ubuntu-and-other-Debian-based-systems)
-
-- [jsdom](https://github.com/jsdom/jsdom) - a implementation of the WHATWG DOM and HTML standards for use with node.js
-
+# serverchart
+Server-sided charts for JavaScript. Forked from the now unmaintained `node-chartjs` package.
 
 ## Getting Started
 
 ### Peer Dependencies
 
-You'll need to `npm install chart.js` as it is a peer dependency of node-chartjs. Tested with `chart.js@2.4.x` any later and we have artifacts there are some issues open upstream, we anticipate fixes in 2.8.x*
+You'll need to `npm install chart.js` as it is a peer dependency of serverchart.
 
-Also make sure you have installed canvas' dependencies ([see installation wiki](https://github.com/Automattic/node-canvas/wiki/_pages))
+Also make sure you have installed `canvas`' dependencies ([see installation wiki](https://github.com/Automattic/node-canvas/wiki/_pages))
 
 ```
-npm install node-chartjs
+npm i serverchart
 ```
 
 ## Usage
-
-```js
-const Chart = require('node-chartjs')
-const chart = new Chart(200, 200) // 1000 x 1000 is default
-
-chart.makeChart({ ... })
-.then(res => {
-  chart.drawChart()
-
-  chart.toFile('test.line.png')
-    .then(_ => {
-      // file is written
-    })
-})
+serverchart is just a Node wrapper for [Chart.js](https://www.chartjs.org/). Everything is the exact same, but instead of doing the following normally:
+```html
+<canvas id="myChart" width="400" height="400"></canvas>
+<script>
+const ctx = document.getElementById('myChart').getContext('2d');
+const myChart = new Chart(ctx, {
+	...
+});
+</script>
 ```
 
-See examples folder for more
+...you would do this:
+```js
+const Chart = require('serverchart');
+const chart = new Chart(400, 400);
+chart.makeChart({ ... }).then(() => {
+	chart.drawChart();
+	chart.toFile('foo.png');
+});
+```
+
+Here's a more complete example:
+```js
+const Chart = require('serverchart');
+const chart = new Chart(200, 200); // width and height
+
+chart.makeChart({
+	type: 'bar',
+	data: {
+		labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+		datasets: [{
+			label: '# of Votes',
+			data: [12, 19, 3, 5, 2, 3],
+			backgroundColor: [
+				'rgba(255, 99, 132, 0.2)',
+				'rgba(54, 162, 235, 0.2)',
+				'rgba(255, 206, 86, 0.2)',
+				'rgba(75, 192, 192, 0.2)',
+				'rgba(153, 102, 255, 0.2)',
+				'rgba(255, 159, 64, 0.2)'
+			],
+			borderColor: [
+				'rgba(255, 99, 132, 1)',
+				'rgba(54, 162, 235, 1)',
+				'rgba(255, 206, 86, 1)',
+				'rgba(75, 192, 192, 1)',
+				'rgba(153, 102, 255, 1)',
+				'rgba(255, 159, 64, 1)'
+			],
+			borderWidth: 1
+		}]
+	},
+	options: {
+		scales: {
+			yAxes: [{
+				ticks: {
+					beginAtZero: true
+				}
+			}]
+		}
+	}
+})
+.then(res => {
+	chart.drawChart();
+	chart.toFile('test.png');
+});
+```
+
+serverchart can also write the output image to a buffer; it's just `const buffer = await chart.toBuffer()`.
