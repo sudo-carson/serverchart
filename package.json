@@ -22,7 +22,7 @@
 	"author": "sudo-carson",
 	"license": "MIT",
 	"dependencies": {
-		"canvas": "^2.6.1",
+		"canvas": "^2.7.0",
 		"jsdom": "^16.4.0"
 	},
 	"peerDependencies": {
